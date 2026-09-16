@@ -337,6 +337,11 @@ class _TransactionsPageState extends State<TransactionsPage> {
     required VoidCallback onTap,
   }) {
     final theme = Theme.of(context);
+    final isLightBg = color.computeLuminance() > 0.5;
+    final selectedFgColor = isLightBg ? AppColors.primary : Colors.white;
+    final fgColor = isSelected ? selectedFgColor : theme.colorScheme.onSurface;
+    final iconColor = isSelected ? selectedFgColor : color;
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -356,7 +361,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
             Icon(
               icon,
               size: 14,
-              color: isSelected ? Colors.white : color,
+              color: iconColor,
             ),
             const SizedBox(width: 5),
             Text(
@@ -364,7 +369,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? Colors.white : theme.colorScheme.onSurface,
+                color: fgColor,
               ),
             ),
           ],
