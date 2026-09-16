@@ -33,6 +33,15 @@ class UpdateStartingBalance extends DashboardEvent {
   List<Object?> get props => [monthKey, startingBalance];
 }
 
+class UpdateMonthlyBudget extends DashboardEvent {
+  final String monthKey;
+  final double budget;
+  const UpdateMonthlyBudget({required this.monthKey, required this.budget});
+
+  @override
+  List<Object?> get props => [monthKey, budget];
+}
+
 abstract class DashboardState extends Equatable {
   const DashboardState();
   @override

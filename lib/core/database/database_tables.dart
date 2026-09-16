@@ -24,9 +24,10 @@ class DatabaseTables {
   static const String colTxCreatedAt = 'created_at'; // ISO-8601
   static const String colTxUpdatedAt = 'updated_at'; // ISO-8601
 
-  // Monthly Configuration columns (for starting balance)
+  // Monthly Configuration columns (for starting balance and budget)
   static const String colMonthKey = 'month_key'; // e.g. "2026-09"
   static const String colStartingBalance = 'starting_balance'; // REAL
+  static const String colBudget = 'budget'; // REAL
   static const String colMonthUpdatedAt = 'updated_at';
 
   static const String createCategoriesTable = '''
@@ -59,6 +60,7 @@ class DatabaseTables {
     CREATE TABLE $monthlyConfigs (
       $colMonthKey TEXT PRIMARY KEY,
       $colStartingBalance REAL NOT NULL DEFAULT 0.0,
+      $colBudget REAL NOT NULL DEFAULT 0.0,
       $colMonthUpdatedAt TEXT NOT NULL
     );
   ''';

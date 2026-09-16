@@ -6,6 +6,7 @@ import 'package:varavu_selavu/core/database/database_tables.dart';
 abstract class MonthlyConfigLocalDataSource {
   Future<MonthlyConfigModel?> getConfigForMonth(String monthKey);
   Future<void> setStartingBalance(String monthKey, double startingBalance);
+  Future<void> setBudget(String monthKey, double budget);
   Future<List<MonthlyConfigModel>> getAllConfigs();
 }
 
@@ -30,9 +31,28 @@ class MonthlyConfigLocalDataSourceImpl implements MonthlyConfigLocalDataSource {
   @override
   Future<void> setStartingBalance(String monthKey, double startingBalance) async {
     final db = await appDatabase.database;
+    final existing = await getConfigForMonth(monthKey);
     final model = MonthlyConfigModel(
       monthKey: monthKey,
       startingBalance: startingBalance,
+      budget: existing?.budget ?? 0.0,
+      updatedAt: DateTime.now(),
+    );
+    await db.insert(
+      DatabaseTables.monthlyConfigs,
+      model.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  @override
+  Future<void> setBudget(String monthKey, double budget) async {
+    final db = await appDatabase.database;
+    final existing = await getConfigForMonth(monthKey);
+    final model = MonthlyConfigModel(
+      monthKey: monthKey,
+      startingBalance: existing?.startingBalance ?? 0.0,
+      budget: budget,
       updatedAt: DateTime.now(),
     );
     await db.insert(

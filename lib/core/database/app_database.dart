@@ -56,6 +56,13 @@ class AppDatabase {
         VALUES ('exp_snacks', 'Snacks', 'fastfood', 4294677052, 'expense', 1, '$now');
       ''');
     }
+    if (oldVersion < 3) {
+      // Safe migration: Add budget column to monthly_configs without altering existing records
+      await db.execute('''
+        ALTER TABLE ${DatabaseTables.monthlyConfigs} 
+        ADD COLUMN ${DatabaseTables.colBudget} REAL NOT NULL DEFAULT 0.0;
+      ''');
+    }
   }
 
   Future<void> _seedDefaultCategories(Database db) async {

@@ -19,6 +19,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     on<LoadDashboard>(_onLoadDashboard);
     on<ChangeSelectedMonth>(_onChangeSelectedMonth);
     on<UpdateStartingBalance>(_onUpdateStartingBalance);
+    on<UpdateMonthlyBudget>(_onUpdateMonthlyBudget);
   }
 
   Future<void> _onLoadDashboard(
@@ -64,6 +65,18 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       add(LoadDashboard(monthKey: event.monthKey));
     } catch (e) {
       emit(DashboardError('Failed to update starting balance: $e'));
+    }
+  }
+
+  Future<void> _onUpdateMonthlyBudget(
+    UpdateMonthlyBudget event,
+    Emitter<DashboardState> emit,
+  ) async {
+    try {
+      await monthlyConfigRepository.setBudget(event.monthKey, event.budget);
+      add(LoadDashboard(monthKey: event.monthKey));
+    } catch (e) {
+      emit(DashboardError('Failed to update monthly budget: $e'));
     }
   }
 }

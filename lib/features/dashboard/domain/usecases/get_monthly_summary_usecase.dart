@@ -19,6 +19,7 @@ class GetMonthlySummaryUseCase {
     // 2. Fetch starting balance configuration for this month
     final config = await monthlyConfigRepository.getConfigForMonth(yearMonthKey);
     final startingBalance = config?.startingBalance ?? 0.0;
+    final budget = config?.budget ?? 0.0;
 
     // 3. Derive total income and total expense strictly from transactions
     double totalIncome = 0.0;
@@ -54,6 +55,7 @@ class GetMonthlySummaryUseCase {
     return MonthlySummary(
       monthKey: yearMonthKey,
       startingBalance: startingBalance,
+      budget: budget,
       totalIncome: totalIncome,
       totalExpense: totalExpense,
       availableBalance: availableBalance,

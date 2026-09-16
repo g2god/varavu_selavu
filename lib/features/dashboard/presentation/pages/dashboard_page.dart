@@ -10,6 +10,7 @@ import 'package:varavu_selavu/features/dashboard/presentation/bloc/dashboard_blo
 import 'package:varavu_selavu/features/dashboard/presentation/widgets/balance_summary_card.dart';
 import 'package:varavu_selavu/features/dashboard/presentation/widgets/category_spending_summary.dart';
 import 'package:varavu_selavu/features/dashboard/presentation/widgets/month_selector.dart';
+import 'package:varavu_selavu/features/dashboard/presentation/widgets/monthly_budget_card.dart';
 import 'package:varavu_selavu/features/dashboard/presentation/widgets/quick_action_buttons.dart';
 
 class DashboardPage extends StatelessWidget {
@@ -25,6 +26,58 @@ class DashboardPage extends StatelessWidget {
     required this.onNavigateToTransactions,
     required this.onNavigateToAnalytics,
   });
+
+  void _showBudgetDialog(BuildContext context, double currentBudget) {
+    final controller = TextEditingController(
+      text: currentBudget > 0 ? (currentBudget % 1 == 0 ? currentBudget.toInt().toString() : currentBudget.toString()) : '',
+    );
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        title: const Text('Set Monthly Spending Budget'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Set a maximum spending limit for ${selectedDate.toMonthYearString()} to track your safe daily spending allowance.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              autofocus: true,
+              decoration: const InputDecoration(
+                prefixText: '₹ ',
+                hintText: 'e.g. 20000',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final val = double.tryParse(controller.text.trim()) ?? 0.0;
+              context.read<DashboardBloc>().add(
+                    UpdateMonthlyBudget(
+                      monthKey: selectedDate.toYearMonthKey(),
+                      budget: val,
+                    ),
+                  );
+              Navigator.pop(dialogCtx);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
 
   void _showStartingBalanceDialog(BuildContext context, double currentBalance) {
     final controller = TextEditingController(
@@ -136,6 +189,15 @@ class DashboardPage extends StatelessWidget {
                       totalSpent: summary.totalExpense,
                       startingBalance: summary.startingBalance,
                       onEditStartingBalance: () => _showStartingBalanceDialog(context, summary.startingBalance),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Monthly Spending Budget & Safe Daily Allowance Card
+                    MonthlyBudgetCard(
+                      budget: summary.budget,
+                      totalSpent: summary.totalExpense,
+                      selectedMonth: selectedDate,
+                      onSetBudget: () => _showBudgetDialog(context, summary.budget),
                     ),
                     const SizedBox(height: 16),
 

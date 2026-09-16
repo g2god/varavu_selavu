@@ -5,6 +5,8 @@ import 'package:varavu_selavu/core/extensions/date_extensions.dart';
 import 'package:varavu_selavu/core/theme/app_colors.dart';
 import 'package:varavu_selavu/core/widgets/empty_state_view.dart';
 import 'package:varavu_selavu/core/widgets/error_view.dart';
+import 'package:varavu_selavu/core/utils/category_icon_helper.dart';
+import 'package:varavu_selavu/features/categories/presentation/cubit/category_cubit.dart';
 import 'package:varavu_selavu/features/transactions/domain/entities/transaction.dart';
 import 'package:varavu_selavu/features/transactions/presentation/bloc/transaction_bloc.dart';
 import 'package:varavu_selavu/features/transactions/presentation/bloc/transaction_event.dart';
@@ -25,6 +27,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
   late final TransactionBloc _transactionBloc;
   final TextEditingController _searchController = TextEditingController();
   TransactionType? _selectedTypeFilter;
+  String? _selectedCategoryId;
 
   @override
   void initState() {
@@ -50,6 +53,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
     _transactionBloc.add(FilterTransactionsQuery(
       searchQuery: query,
       typeFilter: _selectedTypeFilter,
+      categoryIdFilter: _selectedCategoryId,
     ));
   }
 
@@ -58,6 +62,16 @@ class _TransactionsPageState extends State<TransactionsPage> {
     _transactionBloc.add(FilterTransactionsQuery(
       searchQuery: _searchController.text,
       typeFilter: _selectedTypeFilter,
+      categoryIdFilter: _selectedCategoryId,
+    ));
+  }
+
+  void _onCategoryFilterSelected(String? categoryId) {
+    setState(() => _selectedCategoryId = categoryId);
+    _transactionBloc.add(FilterTransactionsQuery(
+      searchQuery: _searchController.text,
+      typeFilter: _selectedTypeFilter,
+      categoryIdFilter: _selectedCategoryId,
     ));
   }
 
@@ -116,6 +130,62 @@ class _TransactionsPageState extends State<TransactionsPage> {
                       _buildFilterChip('Income', _selectedTypeFilter == TransactionType.income,
                           () => _onTypeFilterSelected(TransactionType.income)),
                     ],
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Horizontal Category Filter Chips
+                  BlocBuilder<CategoryCubit, CategoryState>(
+                    builder: (context, catState) {
+                      if (catState is! CategoryLoaded) return const SizedBox.shrink();
+
+                      final categories = _selectedTypeFilter == TransactionType.income
+                          ? catState.incomeCategories
+                          : _selectedTypeFilter == TransactionType.expense
+                              ? catState.expenseCategories
+                              : catState.allCategories;
+
+                      if (categories.isEmpty) return const SizedBox.shrink();
+
+                      return SizedBox(
+                        height: 34,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            // "All Categories" chip
+                            _buildCategoryChip(
+                              label: 'All Categories',
+                              icon: Icons.grid_view_rounded,
+                              isSelected: _selectedCategoryId == null,
+                              color: theme.colorScheme.primary,
+                              onTap: () => _onCategoryFilterSelected(null),
+                            ),
+                            const SizedBox(width: 6),
+                            ...categories.map((cat) {
+                              final isSelected = _selectedCategoryId == cat.id;
+                              final color = Color(cat.color);
+                              final icon = CategoryIconHelper.getIconData(cat.icon);
+
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 6),
+                                child: _buildCategoryChip(
+                                  label: cat.name,
+                                  icon: icon,
+                                  isSelected: isSelected,
+                                  color: color,
+                                  onTap: () {
+                                    if (isSelected) {
+                                      _onCategoryFilterSelected(null); // Deselect on tap
+                                    } else {
+                                      _onCategoryFilterSelected(cat.id);
+                                    }
+                                  },
+                                ),
+                              );
+                            }),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -254,6 +324,50 @@ class _TransactionsPageState extends State<TransactionsPage> {
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryChip({
+    required String label,
+    required IconData icon,
+    required bool isSelected,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: isSelected ? color : color.withAlpha(20),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? color : color.withAlpha(60),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 14,
+              color: isSelected ? Colors.white : color,
+            ),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? Colors.white : theme.colorScheme.onSurface,
+              ),
+            ),
+          ],
         ),
       ),
     );

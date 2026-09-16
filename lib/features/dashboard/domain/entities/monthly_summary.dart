@@ -3,16 +3,18 @@ import 'package:equatable/equatable.dart';
 class MonthlyConfig extends Equatable {
   final String monthKey; // e.g. "2026-09"
   final double startingBalance;
+  final double budget;
   final DateTime updatedAt;
 
   const MonthlyConfig({
     required this.monthKey,
     required this.startingBalance,
+    this.budget = 0.0,
     required this.updatedAt,
   });
 
   @override
-  List<Object?> get props => [monthKey, startingBalance, updatedAt];
+  List<Object?> get props => [monthKey, startingBalance, budget, updatedAt];
 }
 
 class CategorySpending extends Equatable {
@@ -49,6 +51,7 @@ class CategorySpending extends Equatable {
 class MonthlySummary extends Equatable {
   final String monthKey;
   final double startingBalance;
+  final double budget;
   final double totalIncome;
   final double totalExpense;
   final double availableBalance;
@@ -57,6 +60,7 @@ class MonthlySummary extends Equatable {
   const MonthlySummary({
     required this.monthKey,
     required this.startingBalance,
+    this.budget = 0.0,
     required this.totalIncome,
     required this.totalExpense,
     required this.availableBalance,
@@ -67,6 +71,7 @@ class MonthlySummary extends Equatable {
   List<Object?> get props => [
         monthKey,
         startingBalance,
+        budget,
         totalIncome,
         totalExpense,
         availableBalance,

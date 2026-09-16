@@ -18,6 +18,11 @@ class MonthlyConfigRepositoryImpl implements MonthlyConfigRepository {
   }
 
   @override
+  Future<void> setBudget(String monthKey, double budget) async {
+    await localDataSource.setBudget(monthKey, budget);
+  }
+
+  @override
   Future<List<MonthlyConfig>> getAllConfigs() async {
     return await localDataSource.getAllConfigs();
   }

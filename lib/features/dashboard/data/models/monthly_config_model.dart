@@ -5,6 +5,7 @@ class MonthlyConfigModel extends MonthlyConfig {
   const MonthlyConfigModel({
     required super.monthKey,
     required super.startingBalance,
+    super.budget = 0.0,
     required super.updatedAt,
   });
 
@@ -12,6 +13,7 @@ class MonthlyConfigModel extends MonthlyConfig {
     return MonthlyConfigModel(
       monthKey: map[DatabaseTables.colMonthKey] as String,
       startingBalance: (map[DatabaseTables.colStartingBalance] as num).toDouble(),
+      budget: ((map[DatabaseTables.colBudget] ?? 0.0) as num).toDouble(),
       updatedAt: DateTime.parse(map[DatabaseTables.colMonthUpdatedAt] as String),
     );
   }
@@ -20,6 +22,7 @@ class MonthlyConfigModel extends MonthlyConfig {
     return {
       DatabaseTables.colMonthKey: monthKey,
       DatabaseTables.colStartingBalance: startingBalance,
+      DatabaseTables.colBudget: budget,
       DatabaseTables.colMonthUpdatedAt: updatedAt.toIso8601String(),
     };
   }
@@ -28,6 +31,7 @@ class MonthlyConfigModel extends MonthlyConfig {
     return MonthlyConfigModel(
       monthKey: entity.monthKey,
       startingBalance: entity.startingBalance,
+      budget: entity.budget,
       updatedAt: entity.updatedAt,
     );
   }

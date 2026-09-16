@@ -18,5 +18,5 @@ class AppConstants {
 
   // DB Config
   static const String databaseName = 'varavu_selavu.db';
-  static const int databaseVersion = 2;
+  static const int databaseVersion = 3;
 }
