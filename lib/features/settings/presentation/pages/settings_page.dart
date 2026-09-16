@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:varavu_selavu/core/di/injection.dart';
 import 'package:varavu_selavu/core/theme/app_colors.dart';
+import 'package:varavu_selavu/core/theme/theme_cubit.dart';
 import 'package:varavu_selavu/features/security/presentation/bloc/security_bloc.dart';
 import 'package:varavu_selavu/features/security/presentation/pages/pin_setup_page.dart';
 import 'package:varavu_selavu/features/settings/presentation/cubit/settings_cubit.dart';
@@ -61,6 +62,87 @@ class _SettingsPageState extends State<SettingsPage> {
             return ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               children: [
+                // Appearance Section
+                _buildSectionHeader('APPEARANCE'),
+                const SizedBox(height: 8),
+                BlocBuilder<ThemeCubit, ThemeMode>(
+                  builder: (context, currentThemeMode) {
+                    final themeCubit = context.read<ThemeCubit>();
+                    return _buildCard([
+                      ListTile(
+                        leading: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: currentThemeMode == ThemeMode.light
+                                ? Colors.amber.withAlpha(30)
+                                : currentThemeMode == ThemeMode.dark
+                                    ? Colors.indigo.withAlpha(30)
+                                    : theme.colorScheme.primary.withAlpha(30),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            currentThemeMode == ThemeMode.light
+                                ? Icons.wb_sunny_rounded
+                                : currentThemeMode == ThemeMode.dark
+                                    ? Icons.nightlight_round
+                                    : Icons.brightness_auto_rounded,
+                            color: currentThemeMode == ThemeMode.light
+                                ? Colors.amber[800]
+                                : currentThemeMode == ThemeMode.dark
+                                    ? Colors.indigo[300]
+                                    : theme.colorScheme.primary,
+                            size: 20,
+                          ),
+                        ),
+                        title: const Text('Theme Mode', style: TextStyle(fontWeight: FontWeight.w600)),
+                        subtitle: Text(
+                          currentThemeMode == ThemeMode.light
+                              ? 'Light Theme (Bright & Daytime)'
+                              : currentThemeMode == ThemeMode.dark
+                                  ? 'Dark Theme (OLED Friendly)'
+                                  : 'System Default (Matches device)',
+                          style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface.withAlpha(130)),
+                        ),
+                      ),
+                      const Divider(),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
+                        child: SegmentedButton<ThemeMode>(
+                          segments: const [
+                            ButtonSegment(
+                              value: ThemeMode.light,
+                              icon: Icon(Icons.wb_sunny_outlined, size: 18),
+                              label: Text('Light', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                            ),
+                            ButtonSegment(
+                              value: ThemeMode.dark,
+                              icon: Icon(Icons.nightlight_outlined, size: 18),
+                              label: Text('Dark', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                            ),
+                            ButtonSegment(
+                              value: ThemeMode.system,
+                              icon: Icon(Icons.brightness_auto_outlined, size: 18),
+                              label: Text('System', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                            ),
+                          ],
+                          selected: {currentThemeMode},
+                          onSelectionChanged: (Set<ThemeMode> newSelection) {
+                            themeCubit.setThemeMode(newSelection.first);
+                          },
+                          showSelectedIcon: false,
+                          style: ButtonStyle(
+                            visualDensity: VisualDensity.compact,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                        ),
+                      ),
+                    ]);
+                  },
+                ),
+
+                const SizedBox(height: 24),
+
                 // Security Section
                 _buildSectionHeader('SECURITY'),
                 const SizedBox(height: 8),

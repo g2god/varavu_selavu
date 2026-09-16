@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:varavu_selavu/core/constants/app_constants.dart';
 import 'package:varavu_selavu/core/di/injection.dart';
 import 'package:varavu_selavu/core/theme/app_theme.dart';
+import 'package:varavu_selavu/core/theme/theme_cubit.dart';
 
 import 'package:varavu_selavu/features/categories/presentation/cubit/category_cubit.dart';
 import 'package:varavu_selavu/features/navigation/presentation/pages/main_navigation_scaffold.dart';
@@ -74,42 +75,47 @@ class _VaravuSelavuAppState extends State<VaravuSelavuApp> with WidgetsBindingOb
       providers: [
         BlocProvider.value(value: _securityBloc),
         BlocProvider.value(value: sl<CategoryCubit>()..loadCategories()),
+        BlocProvider.value(value: sl<ThemeCubit>()..loadThemeMode()),
       ],
-      child: MaterialApp(
-        title: AppConstants.appName,
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
-        home: !_isInitChecked
-            ? const Scaffold(body: Center(child: CircularProgressIndicator()))
-            : BlocBuilder<SecurityBloc, SecurityState>(
-                builder: (context, state) {
-                  // If App Lock is enabled and locked
-                  if (state is SecurityLocked) {
-                    return LockScreenPage(
-                      isBiometricsAvailable: state.isBiometricsEnabled,
-                      errorMessage: state.errorMessage,
-                      onPinSubmitted: (pin) {
-                        _securityBloc.add(UnlockWithPinSubmitted(pin));
-                      },
-                      onBiometricsRequested: () {
-                        _securityBloc.add(UnlockWithBiometricsRequested());
-                      },
-                    );
-                  }
+      child: BlocBuilder<ThemeCubit, ThemeMode>(
+        builder: (context, themeMode) {
+          return MaterialApp(
+            title: AppConstants.appName,
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeMode,
+            home: !_isInitChecked
+                ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+                : BlocBuilder<SecurityBloc, SecurityState>(
+                    builder: (context, state) {
+                      // If App Lock is enabled and locked
+                      if (state is SecurityLocked) {
+                        return LockScreenPage(
+                          isBiometricsAvailable: state.isBiometricsEnabled,
+                          errorMessage: state.errorMessage,
+                          onPinSubmitted: (pin) {
+                            _securityBloc.add(UnlockWithPinSubmitted(pin));
+                          },
+                          onBiometricsRequested: () {
+                            _securityBloc.add(UnlockWithBiometricsRequested());
+                          },
+                        );
+                      }
 
-                  // First-launch minimal onboarding
-                  if (!_isOnboardingDone) {
-                    return WelcomePage(
-                      onCompleted: _finishOnboarding,
-                    );
-                  }
+                      // First-launch minimal onboarding
+                      if (!_isOnboardingDone) {
+                        return WelcomePage(
+                          onCompleted: _finishOnboarding,
+                        );
+                      }
 
-                  // Main app navigation
-                  return const MainNavigationScaffold();
-                },
-              ),
+                      // Main app navigation
+                      return const MainNavigationScaffold();
+                    },
+                  ),
+          );
+        },
       ),
     );
   }

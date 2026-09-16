@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:varavu_selavu/core/database/app_database.dart';
 import 'package:varavu_selavu/core/security/security_service.dart';
+import 'package:varavu_selavu/core/theme/theme_cubit.dart';
 import 'package:varavu_selavu/features/analytics/domain/usecases/get_analytics_data_usecase.dart';
 import 'package:varavu_selavu/features/analytics/presentation/cubit/analytics_cubit.dart';
 import 'package:varavu_selavu/features/categories/data/datasources/category_local_data_source.dart';
@@ -139,5 +140,8 @@ Future<void> initDependencies() async {
       getTransactionsByMonthUseCase: sl<GetTransactionsByMonthUseCase>(),
       transactionRepository: sl<TransactionRepository>(),
     ),
+  );
+  sl.registerLazySingleton<ThemeCubit>(
+    () => ThemeCubit(secureStorage: sl<FlutterSecureStorage>()),
   );
 }
