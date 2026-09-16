@@ -119,18 +119,9 @@ class _TransactionsPageState extends State<TransactionsPage> {
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      _buildFilterChip('All', _selectedTypeFilter == null, () => _onTypeFilterSelected(null)),
-                      const SizedBox(width: 8),
-                      _buildFilterChip('Expenses', _selectedTypeFilter == TransactionType.expense,
-                          () => _onTypeFilterSelected(TransactionType.expense)),
-                      const SizedBox(width: 8),
-                      _buildFilterChip('Income', _selectedTypeFilter == TransactionType.income,
-                          () => _onTypeFilterSelected(TransactionType.income)),
-                    ],
-                  ),
+                  const SizedBox(height: 12),
+                  // Sleek Segmented Control for Type Filter
+                  _buildSegmentedTypeFilter(theme),
                   const SizedBox(height: 10),
 
                   // Horizontal Category Filter Chips
@@ -147,7 +138,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                       if (categories.isEmpty) return const SizedBox.shrink();
 
                       return SizedBox(
-                        height: 34,
+                        height: 32,
                         child: ListView(
                           scrollDirection: Axis.horizontal,
                           children: [
@@ -156,7 +147,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                               label: 'All Categories',
                               icon: Icons.grid_view_rounded,
                               isSelected: _selectedCategoryId == null,
-                              color: theme.colorScheme.primary,
+                              color: AppColors.primary,
                               onTap: () => _onCategoryFilterSelected(null),
                             ),
                             const SizedBox(width: 6),
@@ -305,24 +296,116 @@ class _TransactionsPageState extends State<TransactionsPage> {
     );
   }
 
-  Widget _buildFilterChip(String label, bool isSelected, VoidCallback onSelected) {
-    return GestureDetector(
-      onTap: onSelected,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Theme.of(context).cardTheme.color,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.outline.withAlpha(50),
-          ),
+  Widget _buildSegmentedTypeFilter(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    final containerBg = isDark
+        ? theme.colorScheme.surface
+        : theme.colorScheme.surfaceContainerHighest.withAlpha(90);
+    final activeBg = isDark ? AppColors.cardDark : Colors.white;
+
+    // Determine target alignment for single sliding pill
+    final Alignment targetAlignment;
+    if (_selectedTypeFilter == null) {
+      targetAlignment = const Alignment(-1.0, 0.0);
+    } else if (_selectedTypeFilter == TransactionType.expense) {
+      targetAlignment = const Alignment(0.0, 0.0);
+    } else {
+      targetAlignment = const Alignment(1.0, 0.0);
+    }
+
+    return Container(
+      height: 38,
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: containerBg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.colorScheme.outline.withAlpha(30),
+          width: 0.8,
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final segmentWidth = constraints.maxWidth / 3;
+
+          return Stack(
+            children: [
+              // Single sliding active pill indicator
+              AnimatedAlign(
+                alignment: targetAlignment,
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeInOutCubic,
+                child: Container(
+                  width: segmentWidth,
+                  height: double.infinity,
+                  decoration: BoxDecoration(
+                    color: activeBg,
+                    borderRadius: BorderRadius.circular(9),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(isDark ? 60 : 18),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Labels on top
+              Row(
+                children: [
+                  _buildSegmentLabel(
+                    label: 'All',
+                    isSelected: _selectedTypeFilter == null,
+                    onTap: () => _onTypeFilterSelected(null),
+                    theme: theme,
+                  ),
+                  _buildSegmentLabel(
+                    label: 'Expenses',
+                    isSelected: _selectedTypeFilter == TransactionType.expense,
+                    onTap: () => _onTypeFilterSelected(TransactionType.expense),
+                    theme: theme,
+                  ),
+                  _buildSegmentLabel(
+                    label: 'Income',
+                    isSelected: _selectedTypeFilter == TransactionType.income,
+                    onTap: () => _onTypeFilterSelected(TransactionType.income),
+                    theme: theme,
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSegmentLabel({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required ThemeData theme,
+  }) {
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Center(
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 180),
+            style: TextStyle(
+              fontSize: 12,
+              fontFamily: theme.textTheme.bodyMedium?.fontFamily,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              color: isSelected
+                  ? (isDark ? Colors.white : AppColors.primary)
+                  : theme.colorScheme.onSurface.withAlpha(160),
+            ),
+            child: Text(label),
           ),
         ),
       ),
