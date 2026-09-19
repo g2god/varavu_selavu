@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:varavu_selavu/core/di/injection.dart';
 import 'package:varavu_selavu/core/extensions/date_extensions.dart';
 import 'package:varavu_selavu/core/widgets/empty_state_view.dart';
 import 'package:varavu_selavu/core/widgets/error_view.dart';
 import 'package:varavu_selavu/features/transactions/domain/entities/transaction.dart';
+import 'package:varavu_selavu/features/transactions/presentation/bloc/transaction_bloc.dart';
+import 'package:varavu_selavu/features/transactions/presentation/bloc/transaction_event.dart';
 import 'package:varavu_selavu/features/transactions/presentation/pages/add_edit_transaction_page.dart';
 import 'package:varavu_selavu/features/transactions/presentation/widgets/transaction_tile.dart';
 import 'package:varavu_selavu/features/dashboard/presentation/bloc/dashboard_bloc.dart';
@@ -29,32 +32,40 @@ class DashboardPage extends StatelessWidget {
 
   void _showBudgetDialog(BuildContext context, double currentBudget) {
     final controller = TextEditingController(
-      text: currentBudget > 0 ? (currentBudget % 1 == 0 ? currentBudget.toInt().toString() : currentBudget.toString()) : '',
+      text: currentBudget > 0
+          ? (currentBudget % 1 == 0
+                ? currentBudget.toInt().toString()
+                : currentBudget.toString())
+          : '',
     );
 
     showDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
         title: const Text('Set Monthly Spending Budget'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Set a maximum spending limit for ${selectedDate.toMonthYearString()} to track your safe daily spending allowance.',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              autofocus: true,
-              decoration: const InputDecoration(
-                prefixText: '₹ ',
-                hintText: 'e.g. 20000',
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Set a maximum spending limit for ${selectedDate.toMonthYearString()} to track your safe daily spending allowance.',
+                style: Theme.of(context).textTheme.bodySmall,
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                autofocus: true,
+                decoration: const InputDecoration(
+                  prefixText: '₹ ',
+                  hintText: 'e.g. 20000',
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -65,11 +76,11 @@ class DashboardPage extends StatelessWidget {
             onPressed: () {
               final val = double.tryParse(controller.text.trim()) ?? 0.0;
               context.read<DashboardBloc>().add(
-                    UpdateMonthlyBudget(
-                      monthKey: selectedDate.toYearMonthKey(),
-                      budget: val,
-                    ),
-                  );
+                UpdateMonthlyBudget(
+                  monthKey: selectedDate.toYearMonthKey(),
+                  budget: val,
+                ),
+              );
               Navigator.pop(dialogCtx);
             },
             child: const Text('Save'),
@@ -81,32 +92,40 @@ class DashboardPage extends StatelessWidget {
 
   void _showStartingBalanceDialog(BuildContext context, double currentBalance) {
     final controller = TextEditingController(
-      text: currentBalance > 0 ? (currentBalance % 1 == 0 ? currentBalance.toInt().toString() : currentBalance.toString()) : '',
+      text: currentBalance > 0
+          ? (currentBalance % 1 == 0
+                ? currentBalance.toInt().toString()
+                : currentBalance.toString())
+          : '',
     );
 
     showDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
         title: const Text('Set Starting Balance'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Enter the initial balance you had at the start of ${selectedDate.toMonthYearString()}.',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              autofocus: true,
-              decoration: const InputDecoration(
-                prefixText: '₹ ',
-                hintText: '0',
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Enter the initial balance you had at the start of ${selectedDate.toMonthYearString()}.',
+                style: Theme.of(context).textTheme.bodySmall,
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                autofocus: true,
+                decoration: const InputDecoration(
+                  prefixText: '₹ ',
+                  hintText: '0',
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -117,11 +136,11 @@ class DashboardPage extends StatelessWidget {
             onPressed: () {
               final val = double.tryParse(controller.text.trim()) ?? 0.0;
               context.read<DashboardBloc>().add(
-                    UpdateStartingBalance(
-                      monthKey: selectedDate.toYearMonthKey(),
-                      startingBalance: val,
-                    ),
-                  );
+                UpdateStartingBalance(
+                  monthKey: selectedDate.toYearMonthKey(),
+                  startingBalance: val,
+                ),
+              );
               Navigator.pop(dialogCtx);
             },
             child: const Text('Save'),
@@ -158,14 +177,15 @@ class DashboardPage extends StatelessWidget {
             return ErrorStateView(
               message: state.message,
               onRetry: () => context.read<DashboardBloc>().add(
-                    LoadDashboard(monthKey: selectedDate.toYearMonthKey()),
-                  ),
+                LoadDashboard(monthKey: selectedDate.toYearMonthKey()),
+              ),
             );
           }
 
           if (state is DashboardLoaded) {
             final summary = state.summary;
-            final hasActivity = summary.totalIncome > 0 ||
+            final hasActivity =
+                summary.totalIncome > 0 ||
                 summary.totalExpense > 0 ||
                 summary.startingBalance > 0 ||
                 state.recentTransactions.isNotEmpty;
@@ -173,12 +193,15 @@ class DashboardPage extends StatelessWidget {
             return RefreshIndicator(
               onRefresh: () async {
                 context.read<DashboardBloc>().add(
-                      LoadDashboard(monthKey: selectedDate.toYearMonthKey()),
-                    );
+                  LoadDashboard(monthKey: selectedDate.toYearMonthKey()),
+                );
               },
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -188,7 +211,10 @@ class DashboardPage extends StatelessWidget {
                       moneyAdded: summary.totalIncome,
                       totalSpent: summary.totalExpense,
                       startingBalance: summary.startingBalance,
-                      onEditStartingBalance: () => _showStartingBalanceDialog(context, summary.startingBalance),
+                      onEditStartingBalance: () => _showStartingBalanceDialog(
+                        context,
+                        summary.startingBalance,
+                      ),
                     ),
                     const SizedBox(height: 14),
 
@@ -197,36 +223,49 @@ class DashboardPage extends StatelessWidget {
                       budget: summary.budget,
                       totalSpent: summary.totalExpense,
                       selectedMonth: selectedDate,
-                      onSetBudget: () => _showBudgetDialog(context, summary.budget),
+                      onSetBudget: () =>
+                          _showBudgetDialog(context, summary.budget),
                     ),
                     const SizedBox(height: 16),
 
                     // Quick Action Buttons (Add Expense / Add Money)
                     QuickActionButtons(
                       onAddExpense: () async {
-                        final res = await Navigator.push(
+                        await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const AddEditTransactionPage(initialType: TransactionType.expense),
+                            builder: (_) => const AddEditTransactionPage(
+                              initialType: TransactionType.expense,
+                            ),
                           ),
                         );
-                        if (res == true && context.mounted) {
+                        if (context.mounted) {
+                          final monthKey = selectedDate.toYearMonthKey();
                           context.read<DashboardBloc>().add(
-                                LoadDashboard(monthKey: selectedDate.toYearMonthKey()),
-                              );
+                            LoadDashboard(monthKey: monthKey),
+                          );
+                          sl<TransactionBloc>().add(
+                            LoadTransactions(monthKey: monthKey),
+                          );
                         }
                       },
                       onAddMoney: () async {
-                        final res = await Navigator.push(
+                        await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const AddEditTransactionPage(initialType: TransactionType.income),
+                            builder: (_) => const AddEditTransactionPage(
+                              initialType: TransactionType.income,
+                            ),
                           ),
                         );
-                        if (res == true && context.mounted) {
+                        if (context.mounted) {
+                          final monthKey = selectedDate.toYearMonthKey();
                           context.read<DashboardBloc>().add(
-                                LoadDashboard(monthKey: selectedDate.toYearMonthKey()),
-                              );
+                            LoadDashboard(monthKey: monthKey),
+                          );
+                          sl<TransactionBloc>().add(
+                            LoadTransactions(monthKey: monthKey),
+                          );
                         }
                       },
                     ),
@@ -247,7 +286,9 @@ class DashboardPage extends StatelessWidget {
                       children: [
                         Text(
                           'Recent Transactions',
-                          style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         if (state.recentTransactions.isNotEmpty)
                           GestureDetector(
@@ -268,20 +309,25 @@ class DashboardPage extends StatelessWidget {
                     if (!hasActivity)
                       EmptyStateView(
                         icon: Icons.account_balance_wallet_outlined,
-                        title: 'No activity in ${selectedDate.toMonthYearString()}',
+                        title:
+                            'No activity in ${selectedDate.toMonthYearString()}',
                         description: 'Record an expense or add money to start monitoring your balance.',
                         actionLabel: 'Add Expense',
                         onAction: () async {
                           final res = await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const AddEditTransactionPage(initialType: TransactionType.expense),
+                              builder: (_) => const AddEditTransactionPage(
+                                initialType: TransactionType.expense,
+                              ),
                             ),
                           );
                           if (res == true && context.mounted) {
                             context.read<DashboardBloc>().add(
-                                  LoadDashboard(monthKey: selectedDate.toYearMonthKey()),
-                                );
+                              LoadDashboard(
+                                monthKey: selectedDate.toYearMonthKey(),
+                              ),
+                            );
                           }
                         },
                       )
@@ -291,33 +337,39 @@ class DashboardPage extends StatelessWidget {
                         child: Center(
                           child: Text(
                             'No recent transactions found.',
-                            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withAlpha(120)),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface.withAlpha(120),
+                            ),
                           ),
                         ),
                       )
                     else
-                      ...state.recentTransactions.map((tx) => Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: TransactionTile(
-                              transaction: tx,
-                              onTap: () async {
-                                final res = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => AddEditTransactionPage(
-                                      initialType: tx.type,
-                                      existingTransaction: tx,
-                                    ),
+                      ...state.recentTransactions.map(
+                        (tx) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: TransactionTile(
+                            transaction: tx,
+                            onTap: () async {
+                              final res = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => AddEditTransactionPage(
+                                    initialType: tx.type,
+                                    existingTransaction: tx,
+                                  ),
+                                ),
+                              );
+                              if (res == true && context.mounted) {
+                                context.read<DashboardBloc>().add(
+                                  LoadDashboard(
+                                    monthKey: selectedDate.toYearMonthKey(),
                                   ),
                                 );
-                                if (res == true && context.mounted) {
-                                  context.read<DashboardBloc>().add(
-                                        LoadDashboard(monthKey: selectedDate.toYearMonthKey()),
-                                      );
-                                }
-                              },
-                            ),
-                          )),
+                              }
+                            },
+                          ),
+                        ),
+                      ),
                     const SizedBox(height: 24),
                   ],
                 ),

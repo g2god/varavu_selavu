@@ -5,6 +5,8 @@ import 'package:varavu_selavu/features/categories/domain/entities/category.dart'
 import 'package:varavu_selavu/features/categories/domain/usecases/add_category_usecase.dart';
 import 'package:varavu_selavu/features/categories/domain/usecases/get_categories_usecase.dart';
 
+import 'package:varavu_selavu/features/categories/domain/usecases/delete_category_usecase.dart';
+
 abstract class CategoryState extends Equatable {
   const CategoryState();
   @override
@@ -27,7 +29,11 @@ class CategoryLoaded extends CategoryState {
   });
 
   @override
-  List<Object?> get props => [allCategories, expenseCategories, incomeCategories];
+  List<Object?> get props => [
+    allCategories,
+    expenseCategories,
+    incomeCategories,
+  ];
 }
 
 class CategoryError extends CategoryState {
@@ -41,24 +47,32 @@ class CategoryError extends CategoryState {
 class CategoryCubit extends Cubit<CategoryState> {
   final GetCategoriesUseCase getCategoriesUseCase;
   final AddCategoryUseCase addCategoryUseCase;
+  final DeleteCategoryUseCase deleteCategoryUseCase;
 
   CategoryCubit({
     required this.getCategoriesUseCase,
     required this.addCategoryUseCase,
+    required this.deleteCategoryUseCase,
   }) : super(CategoryInitial());
 
   Future<void> loadCategories() async {
     emit(CategoryLoading());
     try {
       final categories = await getCategoriesUseCase();
-      final expense = categories.where((c) => c.type == CategoryType.expense).toList();
-      final income = categories.where((c) => c.type == CategoryType.income).toList();
+      final expense = categories
+          .where((c) => c.type == CategoryType.expense)
+          .toList();
+      final income = categories
+          .where((c) => c.type == CategoryType.income)
+          .toList();
 
-      emit(CategoryLoaded(
-        allCategories: categories,
-        expenseCategories: expense,
-        incomeCategories: income,
-      ));
+      emit(
+        CategoryLoaded(
+          allCategories: categories,
+          expenseCategories: expense,
+          incomeCategories: income,
+        ),
+      );
     } catch (e) {
       emit(CategoryError('Failed to load categories: $e'));
     }
@@ -89,5 +103,25 @@ class CategoryCubit extends Cubit<CategoryState> {
       return null;
     }
   }
-}
 
+  Future<int> getTransactionCount(String categoryId) async {
+    return await deleteCategoryUseCase.getTransactionCount(categoryId);
+  }
+
+  Future<bool> deleteCategory({
+    required String categoryId,
+    String? fallbackCategoryId,
+  }) async {
+    try {
+      await deleteCategoryUseCase(
+        categoryId: categoryId,
+        fallbackCategoryId: fallbackCategoryId,
+      );
+      await loadCategories();
+      return true;
+    } catch (e) {
+      emit(CategoryError('Failed to delete category: $e'));
+      return false;
+    }
+  }
+}

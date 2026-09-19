@@ -55,10 +55,10 @@ class _LockScreenPageState extends State<LockScreenPage> {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withAlpha(20),
+                  color: theme.colorScheme.primary.withAlpha(25),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.lock_outline_rounded, size: 32, color: AppColors.primary),
+                child: Icon(Icons.lock_outline_rounded, size: 32, color: theme.colorScheme.primary),
               ),
               const SizedBox(height: 24),
               Text(
@@ -79,15 +79,16 @@ class _LockScreenPageState extends State<LockScreenPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(4, (index) {
                   final isFilled = index < _enteredPin.length;
-                  return Container(
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
                     margin: const EdgeInsets.symmetric(horizontal: 10),
                     width: 16,
                     height: 16,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isFilled ? AppColors.primary : Colors.transparent,
+                      color: isFilled ? theme.colorScheme.primary : Colors.transparent,
                       border: Border.all(
-                        color: isFilled ? AppColors.primary : theme.colorScheme.outline.withAlpha(100),
+                        color: isFilled ? theme.colorScheme.primary : theme.colorScheme.outline.withAlpha(120),
                         width: 2,
                       ),
                     ),

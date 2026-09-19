@@ -277,6 +277,21 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                         id: tx.id,
                                         monthKey: widget.currentMonthKey,
                                       ));
+
+                                      ScaffoldMessenger.of(context).clearSnackBars();
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Deleted "${tx.categoryName ?? 'Transaction'}"'),
+                                          duration: const Duration(seconds: 4),
+                                          action: SnackBarAction(
+                                            label: 'UNDO',
+                                            textColor: AppColors.accent,
+                                            onPressed: () {
+                                              _transactionBloc.add(AddTransactionSubmitted(tx));
+                                            },
+                                          ),
+                                        ),
+                                      );
                                     },
                                   ),
                                 )),

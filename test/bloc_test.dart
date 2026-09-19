@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:varavu_selavu/features/categories/domain/entities/category.dart';
 import 'package:varavu_selavu/features/categories/domain/usecases/add_category_usecase.dart';
+import 'package:varavu_selavu/features/categories/domain/usecases/delete_category_usecase.dart';
 import 'package:varavu_selavu/features/categories/domain/usecases/get_categories_usecase.dart';
 import 'package:varavu_selavu/features/categories/presentation/cubit/category_cubit.dart';
 import 'package:varavu_selavu/features/transactions/domain/entities/transaction.dart';
@@ -52,6 +53,20 @@ class FakeTransactionRepository implements TransactionRepository {
       _items[idx] = transaction;
     }
   }
+
+  @override
+  Future<int> countTransactionsByCategoryId(String categoryId) async {
+    return _items.where((t) => t.categoryId == categoryId).length;
+  }
+
+  @override
+  Future<void> reassignCategoryTransactions(String oldCategoryId, String newCategoryId) async {
+    for (int i = 0; i < _items.length; i++) {
+      if (_items[i].categoryId == oldCategoryId) {
+        _items[i] = _items[i].copyWith(categoryId: newCategoryId);
+      }
+    }
+  }
 }
 
 class FakeGetCategoriesUseCase implements GetCategoriesUseCase {
@@ -89,6 +104,17 @@ class FakeAddCategoryUseCase implements AddCategoryUseCase {
 
   @override
   Future<void> call(Category category) async {}
+}
+
+class FakeDeleteCategoryUseCase implements DeleteCategoryUseCase {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  Future<int> getTransactionCount(String categoryId) async => 0;
+
+  @override
+  Future<void> call({required String categoryId, String? fallbackCategoryId}) async {}
 }
 
 void main() {
@@ -154,6 +180,7 @@ void main() {
       build: () => CategoryCubit(
         getCategoriesUseCase: FakeGetCategoriesUseCase(),
         addCategoryUseCase: FakeAddCategoryUseCase(),
+        deleteCategoryUseCase: FakeDeleteCategoryUseCase(),
       ),
       act: (cubit) => cubit.loadCategories(),
       expect: () => [

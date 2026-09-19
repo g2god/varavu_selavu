@@ -13,6 +13,10 @@ extension DateFormattingX on DateTime {
     return DateFormat('MMMM yyyy').format(this);
   }
 
+  String toShortMonthYearString() {
+    return DateFormat('MMM yyyy').format(this);
+  }
+
   String toDisplayDateString() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);

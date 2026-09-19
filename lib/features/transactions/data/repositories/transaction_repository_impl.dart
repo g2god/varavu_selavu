@@ -47,4 +47,14 @@ class TransactionRepositoryImpl implements TransactionRepository {
   Future<List<AppTransaction>> getRecentTransactions({int limit = 5}) async {
     return await localDataSource.getRecentTransactions(limit: limit);
   }
+
+  @override
+  Future<int> countTransactionsByCategoryId(String categoryId) async {
+    return await localDataSource.countTransactionsByCategoryId(categoryId);
+  }
+
+  @override
+  Future<void> reassignCategoryTransactions(String oldCategoryId, String newCategoryId) async {
+    await localDataSource.reassignCategoryTransactions(oldCategoryId, newCategoryId);
+  }
 }

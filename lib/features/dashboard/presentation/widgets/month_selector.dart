@@ -14,6 +14,8 @@ class MonthSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final now = DateTime.now();
+    final isCurrentMonth = selectedDate.year == now.year && selectedDate.month == now.month;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -37,7 +39,7 @@ class MonthSelector extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Text(
-            selectedDate.toMonthYearString(),
+            selectedDate.toShortMonthYearString(),
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.bold,
               letterSpacing: 0.2,
@@ -45,11 +47,17 @@ class MonthSelector extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           IconButton(
-            icon: const Icon(Icons.chevron_right, size: 22),
-            onPressed: () {
-              final next = DateTime(selectedDate.year, selectedDate.month + 1, 1);
-              onMonthChanged(next);
-            },
+            icon: Icon(
+              Icons.chevron_right,
+              size: 22,
+              color: isCurrentMonth ? theme.colorScheme.onSurface.withAlpha(50) : null,
+            ),
+            onPressed: isCurrentMonth
+                ? null
+                : () {
+                    final next = DateTime(selectedDate.year, selectedDate.month + 1, 1);
+                    onMonthChanged(next);
+                  },
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
             visualDensity: VisualDensity.compact,

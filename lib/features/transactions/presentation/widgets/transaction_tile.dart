@@ -30,6 +30,28 @@ class TransactionTile extends StatelessWidget {
     return Dismissible(
       key: Key(transaction.id),
       direction: onDelete != null ? DismissDirection.endToStart : DismissDirection.none,
+      confirmDismiss: (direction) async {
+        return await showDialog<bool>(
+          context: context,
+          builder: (dialogCtx) => AlertDialog(
+            title: const Text('Delete Transaction?'),
+            content: Text(
+              'Are you sure you want to delete ${transaction.categoryName ?? 'this transaction'} of ${transaction.amount.toCurrency()}?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogCtx, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(dialogCtx, true),
+                style: TextButton.styleFrom(foregroundColor: AppColors.expense),
+                child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        ) ?? false;
+      },
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),

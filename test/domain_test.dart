@@ -89,6 +89,7 @@ void main() {
       expect(date.toYearMonthKey(), equals('2026-09'));
       expect(date.toIsoDateString(), equals('2026-09-15'));
       expect(date.toMonthYearString(), equals('September 2026'));
+      expect(date.toShortMonthYearString(), equals('Sep 2026'));
     });
   });
 

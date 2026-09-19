@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -8,13 +9,19 @@ import 'package:varavu_selavu/core/theme/app_theme.dart';
 import 'package:varavu_selavu/core/theme/theme_cubit.dart';
 
 import 'package:varavu_selavu/features/categories/presentation/cubit/category_cubit.dart';
+import 'package:varavu_selavu/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:varavu_selavu/features/navigation/presentation/pages/main_navigation_scaffold.dart';
 import 'package:varavu_selavu/features/onboarding/presentation/pages/welcome_page.dart';
 import 'package:varavu_selavu/features/security/presentation/bloc/security_bloc.dart';
 import 'package:varavu_selavu/features/security/presentation/pages/lock_screen_page.dart';
+import 'package:varavu_selavu/features/transactions/presentation/bloc/transaction_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   await initDependencies();
   runApp(const VaravuSelavuApp());
 }
@@ -26,7 +33,8 @@ class VaravuSelavuApp extends StatefulWidget {
   State<VaravuSelavuApp> createState() => _VaravuSelavuAppState();
 }
 
-class _VaravuSelavuAppState extends State<VaravuSelavuApp> with WidgetsBindingObserver {
+class _VaravuSelavuAppState extends State<VaravuSelavuApp>
+    with WidgetsBindingObserver {
   late final SecurityBloc _securityBloc;
   bool _isOnboardingDone = false;
   bool _isInitChecked = false;
@@ -50,7 +58,8 @@ class _VaravuSelavuAppState extends State<VaravuSelavuApp> with WidgetsBindingOb
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
       _securityBloc.add(LockApp());
     }
   }
@@ -63,7 +72,10 @@ class _VaravuSelavuAppState extends State<VaravuSelavuApp> with WidgetsBindingOb
 
   void _finishOnboarding() async {
     final storage = sl<FlutterSecureStorage>();
-    await storage.write(key: AppConstants.keyOnboardingCompleted, value: 'true');
+    await storage.write(
+      key: AppConstants.keyOnboardingCompleted,
+      value: 'true',
+    );
     setState(() {
       _isOnboardingDone = true;
     });
@@ -76,6 +88,8 @@ class _VaravuSelavuAppState extends State<VaravuSelavuApp> with WidgetsBindingOb
         BlocProvider.value(value: _securityBloc),
         BlocProvider.value(value: sl<CategoryCubit>()..loadCategories()),
         BlocProvider.value(value: sl<ThemeCubit>()..loadThemeMode()),
+        BlocProvider.value(value: sl<TransactionBloc>()),
+        BlocProvider.value(value: sl<DashboardBloc>()),
       ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, themeMode) {
@@ -86,7 +100,9 @@ class _VaravuSelavuAppState extends State<VaravuSelavuApp> with WidgetsBindingOb
             darkTheme: AppTheme.darkTheme,
             themeMode: themeMode,
             home: !_isInitChecked
-                ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+                ? const Scaffold(
+                    body: Center(child: CircularProgressIndicator()),
+                  )
                 : BlocBuilder<SecurityBloc, SecurityState>(
                     builder: (context, state) {
                       // If App Lock is enabled and locked
@@ -105,9 +121,7 @@ class _VaravuSelavuAppState extends State<VaravuSelavuApp> with WidgetsBindingOb
 
                       // First-launch minimal onboarding
                       if (!_isOnboardingDone) {
-                        return WelcomePage(
-                          onCompleted: _finishOnboarding,
-                        );
+                        return WelcomePage(onCompleted: _finishOnboarding);
                       }
 
                       // Main app navigation

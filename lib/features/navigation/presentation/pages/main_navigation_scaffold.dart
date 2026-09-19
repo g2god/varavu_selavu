@@ -6,6 +6,8 @@ import 'package:varavu_selavu/features/analytics/presentation/pages/analytics_pa
 import 'package:varavu_selavu/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:varavu_selavu/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:varavu_selavu/features/settings/presentation/pages/settings_page.dart';
+import 'package:varavu_selavu/features/transactions/presentation/bloc/transaction_bloc.dart';
+import 'package:varavu_selavu/features/transactions/presentation/bloc/transaction_event.dart';
 import 'package:varavu_selavu/features/transactions/presentation/pages/transactions_page.dart';
 
 class MainNavigationScaffold extends StatefulWidget {
@@ -27,6 +29,12 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
   }
 
   void _onMonthChanged(DateTime newDate) {
+    final now = DateTime.now();
+    // Prevent navigating into future months
+    if (newDate.year > now.year || (newDate.year == now.year && newDate.month > now.month)) {
+      return;
+    }
+
     setState(() {
       _selectedDate = newDate;
     });
@@ -60,8 +68,11 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
           selectedIndex: _currentIndex,
           onDestinationSelected: (index) {
             setState(() => _currentIndex = index);
+            final monthKey = _selectedDate.toYearMonthKey();
             if (index == 0) {
-              _dashboardBloc.add(LoadDashboard(monthKey: _selectedDate.toYearMonthKey()));
+              _dashboardBloc.add(LoadDashboard(monthKey: monthKey));
+            } else if (index == 1) {
+              sl<TransactionBloc>().add(LoadTransactions(monthKey: monthKey));
             }
           },
           destinations: const [

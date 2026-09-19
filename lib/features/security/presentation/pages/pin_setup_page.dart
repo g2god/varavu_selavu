@@ -50,7 +50,9 @@ class _PinSetupPageState extends State<PinSetupPage> {
   void _onDelete() {
     if (_isConfirming) {
       if (_confirmPin.isNotEmpty) {
-        setState(() => _confirmPin = _confirmPin.substring(0, _confirmPin.length - 1));
+        setState(
+          () => _confirmPin = _confirmPin.substring(0, _confirmPin.length - 1),
+        );
       }
     } else {
       if (_pin.isNotEmpty) {
@@ -65,9 +67,7 @@ class _PinSetupPageState extends State<PinSetupPage> {
     final activePin = _isConfirming ? _confirmPin : _pin;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Setup App PIN'),
-      ),
+      appBar: AppBar(title: const Text('Setup App PIN')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
@@ -76,7 +76,9 @@ class _PinSetupPageState extends State<PinSetupPage> {
               const SizedBox(height: 20),
               Text(
                 _isConfirming ? 'Confirm your PIN' : 'Create a 4-digit PIN',
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
@@ -95,15 +97,20 @@ class _PinSetupPageState extends State<PinSetupPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(4, (i) {
                   final isFilled = i < activePin.length;
-                  return Container(
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
                     margin: const EdgeInsets.symmetric(horizontal: 10),
                     width: 16,
                     height: 16,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isFilled ? AppColors.primary : Colors.transparent,
+                      color: isFilled
+                          ? theme.colorScheme.primary
+                          : Colors.transparent,
                       border: Border.all(
-                        color: isFilled ? AppColors.primary : theme.colorScheme.outline.withAlpha(100),
+                        color: isFilled
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.outline.withAlpha(120),
                         width: 2,
                       ),
                     ),
@@ -115,7 +122,10 @@ class _PinSetupPageState extends State<PinSetupPage> {
                 const SizedBox(height: 16),
                 Text(
                   _error!,
-                  style: const TextStyle(color: AppColors.expense, fontSize: 13),
+                  style: const TextStyle(
+                    color: AppColors.expense,
+                    fontSize: 13,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -178,9 +188,14 @@ class _PinSetupPageState extends State<PinSetupPage> {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: Theme.of(context).cardTheme.color,
-          border: Border.all(color: Theme.of(context).colorScheme.outline.withAlpha(40)),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outline.withAlpha(40),
+          ),
         ),
-        child: Text(digit, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600)),
+        child: Text(
+          digit,
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+        ),
       ),
     );
   }

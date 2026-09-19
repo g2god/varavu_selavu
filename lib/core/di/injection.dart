@@ -10,6 +10,7 @@ import 'package:varavu_selavu/features/categories/data/datasources/category_loca
 import 'package:varavu_selavu/features/categories/data/repositories/category_repository_impl.dart';
 import 'package:varavu_selavu/features/categories/domain/repositories/category_repository.dart';
 import 'package:varavu_selavu/features/categories/domain/usecases/add_category_usecase.dart';
+import 'package:varavu_selavu/features/categories/domain/usecases/delete_category_usecase.dart';
 import 'package:varavu_selavu/features/categories/domain/usecases/get_categories_usecase.dart';
 import 'package:varavu_selavu/features/categories/presentation/cubit/category_cubit.dart';
 import 'package:varavu_selavu/features/dashboard/data/datasources/monthly_config_local_data_source.dart';
@@ -76,6 +77,12 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<AddCategoryUseCase>(
     () => AddCategoryUseCase(sl<CategoryRepository>()),
   );
+  sl.registerLazySingleton<DeleteCategoryUseCase>(
+    () => DeleteCategoryUseCase(
+      categoryRepository: sl<CategoryRepository>(),
+      transactionRepository: sl<TransactionRepository>(),
+    ),
+  );
   sl.registerLazySingleton<GetTransactionsByMonthUseCase>(
     () => GetTransactionsByMonthUseCase(sl<TransactionRepository>()),
   );
@@ -109,9 +116,10 @@ Future<void> initDependencies() async {
     () => CategoryCubit(
       getCategoriesUseCase: sl<GetCategoriesUseCase>(),
       addCategoryUseCase: sl<AddCategoryUseCase>(),
+      deleteCategoryUseCase: sl<DeleteCategoryUseCase>(),
     ),
   );
-  sl.registerFactory<TransactionBloc>(
+  sl.registerLazySingleton<TransactionBloc>(
     () => TransactionBloc(
       getTransactionsByMonthUseCase: sl<GetTransactionsByMonthUseCase>(),
       addTransactionUseCase: sl<AddTransactionUseCase>(),
@@ -119,7 +127,7 @@ Future<void> initDependencies() async {
       deleteTransactionUseCase: sl<DeleteTransactionUseCase>(),
     ),
   );
-  sl.registerFactory<DashboardBloc>(
+  sl.registerLazySingleton<DashboardBloc>(
     () => DashboardBloc(
       getMonthlySummaryUseCase: sl<GetMonthlySummaryUseCase>(),
       getRecentTransactionsUseCase: sl<GetRecentTransactionsUseCase>(),

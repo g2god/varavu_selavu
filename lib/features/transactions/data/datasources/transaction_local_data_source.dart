@@ -11,6 +11,8 @@ abstract class TransactionLocalDataSource {
   Future<void> deleteTransaction(String id);
   Future<List<Map<String, dynamic>>> getCategorySpendingByMonth(String yearMonthKey);
   Future<List<TransactionModel>> getRecentTransactions({int limit = 5});
+  Future<int> countTransactionsByCategoryId(String categoryId);
+  Future<void> reassignCategoryTransactions(String oldCategoryId, String newCategoryId);
 }
 
 class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
@@ -144,5 +146,33 @@ class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
       [limit],
     );
     return results.map((map) => TransactionModel.fromMap(map)).toList();
+  }
+
+  @override
+  Future<int> countTransactionsByCategoryId(String categoryId) async {
+    final db = await appDatabase.database;
+    final results = await db.rawQuery(
+      'SELECT COUNT(*) as count FROM ${DatabaseTables.transactions} WHERE ${DatabaseTables.colTxCategoryId} = ?',
+      [categoryId],
+    );
+    if (results.isNotEmpty) {
+      return (results.first['count'] as num?)?.toInt() ?? 0;
+    }
+    return 0;
+  }
+
+  @override
+  Future<void> reassignCategoryTransactions(String oldCategoryId, String newCategoryId) async {
+    final db = await appDatabase.database;
+    final now = DateTime.now().toIso8601String();
+    await db.update(
+      DatabaseTables.transactions,
+      {
+        DatabaseTables.colTxCategoryId: newCategoryId,
+        DatabaseTables.colTxUpdatedAt: now,
+      },
+      where: '${DatabaseTables.colTxCategoryId} = ?',
+      whereArgs: [oldCategoryId],
+    );
   }
 }
