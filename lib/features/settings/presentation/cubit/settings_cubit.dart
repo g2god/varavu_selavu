@@ -1,9 +1,11 @@
 import 'dart:io';
+
 import 'package:equatable/equatable.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:varavu_selavu/core/security/security_service.dart';
+import 'package:varavu_selavu/core/utils/file_storage_helper.dart';
 import 'package:varavu_selavu/features/dashboard/domain/usecases/get_monthly_summary_usecase.dart';
 import 'package:varavu_selavu/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:varavu_selavu/features/transactions/domain/usecases/transaction_usecases.dart';
@@ -24,11 +26,11 @@ abstract class SettingsState extends Equatable {
 
   @override
   List<Object?> get props => [
-        isAppLockEnabled,
-        isBiometricsEnabled,
-        hasPinSet,
-        canUseBiometrics,
-      ];
+    isAppLockEnabled,
+    isBiometricsEnabled,
+    hasPinSet,
+    canUseBiometrics,
+  ];
 }
 
 class SettingsInitial extends SettingsState {}
@@ -101,12 +103,14 @@ class SettingsCubit extends Cubit<SettingsState> {
     final hasPin = await securityService.hasPinSet();
     final canBio = await securityService.canCheckBiometrics();
 
-    emit(SettingsLoaded(
-      isAppLockEnabled: isLocked,
-      isBiometricsEnabled: isBio,
-      hasPinSet: hasPin,
-      canUseBiometrics: canBio,
-    ));
+    emit(
+      SettingsLoaded(
+        isAppLockEnabled: isLocked,
+        isBiometricsEnabled: isBio,
+        hasPinSet: hasPin,
+        canUseBiometrics: canBio,
+      ),
+    );
   }
 
   Future<void> toggleAppLock(bool value) async {
@@ -130,17 +134,12 @@ class SettingsCubit extends Cubit<SettingsState> {
         transactions: transactions,
       );
 
-      final tempDir = Directory.systemTemp;
-      final file = File('${tempDir.path}/Varavu_Selavu_Report_$monthKey.pdf');
-      await file.writeAsBytes(pdfBytes);
-
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(file.path)],
-          subject: 'Varavu Selavu Expense Report - $monthKey',
-        ),
+      final savedFile = await FileStorageHelper.saveBinaryFile(
+        fileName: 'Varavu_Selavu_Report_$monthKey.pdf',
+        bytes: pdfBytes,
       );
-      emit(const SettingsActionSuccess('PDF report generated and shared successfully.'));
+
+      emit(SettingsActionSuccess('PDF saved to: ${savedFile.path}'));
       await loadSettings();
     } catch (e) {
       emit(SettingsActionError('Failed to generate PDF: $e'));
@@ -154,17 +153,14 @@ class SettingsCubit extends Cubit<SettingsState> {
       final allTransactions = await transactionRepository.getAllTransactions();
       final csvString = dataPortabilityService.generateCsv(allTransactions);
 
-      final tempDir = Directory.systemTemp;
-      final file = File('${tempDir.path}/varavu_selavu_transactions_${DateTime.now().millisecondsSinceEpoch}.csv');
-      await file.writeAsString(csvString);
-
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(file.path)],
-          subject: 'Varavu Selavu Transactions CSV',
-        ),
+      final fileName =
+          'varavu_selavu_transactions_${DateTime.now().millisecondsSinceEpoch}.csv';
+      final savedFile = await FileStorageHelper.saveTextFile(
+        fileName: fileName,
+        content: csvString,
       );
-      emit(const SettingsActionSuccess('CSV exported successfully.'));
+
+      emit(SettingsActionSuccess('CSV saved to: ${savedFile.path}'));
       await loadSettings();
     } catch (e) {
       emit(SettingsActionError('Failed to export CSV: $e'));
@@ -177,7 +173,9 @@ class SettingsCubit extends Cubit<SettingsState> {
     try {
       final jsonBackup = await dataPortabilityService.createBackupJson();
       final tempDir = Directory.systemTemp;
-      final file = File('${tempDir.path}/varavu_selavu_backup_${DateTime.now().millisecondsSinceEpoch}.json');
+      final file = File(
+        '${tempDir.path}/varavu_selavu_backup_${DateTime.now().millisecondsSinceEpoch}.json',
+      );
       await file.writeAsString(jsonBackup);
 
       await SharePlus.instance.share(
@@ -212,9 +210,11 @@ class SettingsCubit extends Cubit<SettingsState> {
 
       final counts = await dataPortabilityService.restoreBackupJson(jsonString);
 
-      emit(SettingsActionSuccess(
-        'Restored ${counts['transactions']} transactions and ${counts['categories']} categories successfully.',
-      ));
+      emit(
+        SettingsActionSuccess(
+          'Restored ${counts['transactions']} transactions and ${counts['categories']} categories successfully.',
+        ),
+      );
       await loadSettings();
     } catch (e) {
       emit(SettingsActionError('Restore failed: $e'));

@@ -22,6 +22,16 @@ class LockScreenPage extends StatefulWidget {
 class _LockScreenPageState extends State<LockScreenPage> {
   String _enteredPin = '';
 
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isBiometricsAvailable && widget.onBiometricsRequested != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onBiometricsRequested!();
+      });
+    }
+  }
+
   void _onDigitPressed(String digit) {
     if (_enteredPin.length < 4) {
       setState(() => _enteredPin += digit);
